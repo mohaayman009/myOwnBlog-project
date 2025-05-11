@@ -7,7 +7,7 @@ const PostController = require('../controllers/posts.controller');
 const { validationSchema } = require('../middleware/validationSchema');
 const verifyToken = require('../middleware/verfiyToken');
 const userRoles = require('../utils/userRoles');
-
+const upload = require('../middleware/upload');
 
 
 router.route('/')
@@ -17,7 +17,7 @@ router.route('/')
 
 router.route('/:PostId')
             .get(verifyToken,PostController.getPost)
-            .patch(verifyToken,PostController.updatePost)
+            .patch(verifyToken,upload.single('image'),PostController.updatePost)
             .delete(verifyToken,  PostController.deletePost);
 
 

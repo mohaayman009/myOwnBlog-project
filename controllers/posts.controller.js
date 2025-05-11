@@ -43,6 +43,7 @@ const addPost = asyncWrapper(async (req, res, next) => {
     
     const { title, content, tags } = req.body;
     const imageUrl = req.file.path; // Cloudinary 
+    const imageId = req.file.filename; 
     
 
     const newPost = new Post({
@@ -51,25 +52,59 @@ const addPost = asyncWrapper(async (req, res, next) => {
         author: req.currentUser.id,
         tags,
         imageUrl,
+        imageId,
     });
 
-    
+  
     await newPost.save();
 
     res.status(201).json({status: httpStatusText.SUCCESS, data: {Post: newPost}})
 })
 
 const updatePost = asyncWrapper(async (req, res) => {
-    const PostId = req.params.PostId;    
-    const updatedPost = await Post.updateOne({_id: PostId}, {$set: {...req.body}});
-    return res.status(200).json({status: httpStatusText.SUCCESS, data: {Post: updatedPost}})
+    const { PostId } = req.params;
+    const post = await Post.findById({_id: PostId});
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // If a new image is uploaded
+    if (req.file) {
+      // 1. Delete the old image from Cloudinary (if exists)
+      if (post.imageId) {
+        await cloudinary.uploader.destroy(post.imageId);
+      }
+
+      // 2. Update with new image details
+      post.imageUrl = req.file.path; // Cloudinary URL
+      post.imageId = req.file.filename; // Cloudinary public_id
+    }
+     if (req.body.title) post.title = req.body.title;
+    if (req.body.content) post.content = req.body.content;
+     if (req.body.tags) post.tags = req.body.tags;
+    
+    // Save the updated post
+    await post.save();
+    
+    return res.status(200).json({status: httpStatusText.SUCCESS, data: {Post: post}})
 
 
 })
 
 const deletePost = asyncWrapper(async (req, res) => {
-    await Post.deleteOne({_id: req.params.PostId});
-    res.status(200).json({status: httpStatusText.SUCCESS, data: null});
+      const post = await Post.findByIdAndDelete(req.params.PostId);
+
+    if (!post) {
+      return res.status(404).json({ error: 'Post not found' });
+    }
+
+    // Delete image from Cloudinary if exists
+    if (post.imageId) {
+      await cloudinary.uploader.destroy(post.imageId);
+    }
+
+    res.status(200).json({status: httpStatusText.SUCCESS, message:'Post deleted successfully', data: null});
+   
 })
 
 module.exports = {

@@ -6,7 +6,7 @@ const CommentController = require('../controllers/comments.controller');
 const { validationSchema } = require('../middleware/validationSchema');
 const verifyToken = require('../middleware/verfiyToken');
 const userRoles = require('../utils/userRoles');
-const allowedTo = require('../middleware/allowedTo');
+
 const appError = require('../utils/appError');
 
 

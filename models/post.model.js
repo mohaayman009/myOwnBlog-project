@@ -6,6 +6,7 @@ const postSchema = new mongoose.Schema({
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     tags: [String],
     imageUrl: String,
+    imageId: String,
     comments:[{
          type: mongoose.Schema.Types.ObjectId, ref: 'Comment'        
       }]
