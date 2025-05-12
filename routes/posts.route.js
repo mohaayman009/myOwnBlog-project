@@ -11,7 +11,8 @@ const upload = require('../middleware/upload');
 
 
 router.route('/')
-            .get(verifyToken,PostController.getAllPosts)
+          //  .get(verifyToken,PostController.getAllPosts)
+            .get(verifyToken, PostController.searchForPosts)
             .post(verifyToken, upload.single('image'),validationSchema(),PostController.addPost);
 
 

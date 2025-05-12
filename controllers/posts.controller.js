@@ -5,10 +5,10 @@ const asyncWrapper = require('../middleware/asyncWrapper');
 const appError = require('../utils/appError');
 const Post = require('../models/post.model');
 const { cloudinary } = require('../utils/cloudinary');
+const { search } = require('../routes/users.route');
 
 const getAllPosts = asyncWrapper(async (req,res) => {
     const query = req.query;
-
     const limit = query.limit || 10;
     const page = query.page || 1;
     const skip = (page - 1) * limit;
@@ -19,9 +19,35 @@ const getAllPosts = asyncWrapper(async (req,res) => {
     res.json({ status: httpStatusText.SUCCESS, data: {Posts}});
 })
 
+const searchForPosts = asyncWrapper(async (req, res) => {
+  
+    const limit = req.query.limit || 10;
+    const page = req.query.page || 1;
+    const skip = (page - 1) * limit;
+    const  searchTerm  = req.query.searchTerm
+
+    console.log('searching for posts',searchTerm);
+
+    if (!searchTerm) {
+        return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    const Posts = await Post.find({
+        $or: [
+            { title: { $regex: searchTerm, $options: 'i' } },
+            { content: { $regex: searchTerm, $options: 'i' } },
+            { tags: { $regex: searchTerm, $options: 'i' } }
+        ]
+    },{"__v": false}).limit(limit).skip(skip);
+
+    res.json({ status: httpStatusText.SUCCESS, data: { Posts } });
+});
+
+
+
 const getPost = asyncWrapper(
     async (req, res, next) => {
-
+      
         const Post = await Post.findById(req.params.PostId);
         if(!Post) {
             const error = appError.create('Post not found', 404, httpStatusText.FAIL)
@@ -109,6 +135,7 @@ const deletePost = asyncWrapper(async (req, res) => {
 
 module.exports = {
     getAllPosts,
+    searchForPosts,
     getPost,
     addPost,
     updatePost,
