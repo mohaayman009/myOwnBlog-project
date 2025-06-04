@@ -1,5 +1,5 @@
 const asyncWrapper = require("../middleware/asyncWrapper");
-const User = require('../models/user.model');
+const User = require('../models/user');
 const httpStatusText = require('../utils/httpStatusText');
 const appError = require('../utils/appError');
 const bcrypt = require('bcryptjs');
